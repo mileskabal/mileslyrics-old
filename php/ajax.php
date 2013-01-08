@@ -18,20 +18,37 @@ if(isset($_POST['action']) && $_POST['action'] != ''){
 	if($action == 'create_artist'){
 		if(isset($_POST['name']) && $_POST['name'] != ''){
 			$ajax['response'] = 'ok';
-			$ajax['data'] = $milesLyrics->ajaxCreateArtist($_POST['name']);
+			if(isset($_POST['confirm']) && $_POST['confirm'] == '1'){
+				$ajax['data'] = $milesLyrics->ajaxCreateArtist($_POST['name'],true);
+			}
+			else{
+				$ajax['data'] = $milesLyrics->ajaxCreateArtist($_POST['name']);
+			}
 		}
 		else{
 			$ajax['error'] = 'No artist name';
 		}
 	}
-	// Create Album
-	elseif($action == 'create_album'){
-		if(isset($_POST['name']) && $_POST['name'] != ''){
+	// Create Album Select Artist
+	elseif($action == 'create_album_select_artist'){
+		if(isset($_POST['id_artist']) && $_POST['id_artist'] != ''){
 			$ajax['response'] = 'ok';
-			$ajax['data'] = 'WESH MORRAY';
+			$ajax['data'] = $milesLyrics->ajaxCreateAlbumSelectArtist($_POST['id_artist']);
+			//~ $ajax['data'] = 'WESH '.$_POST['id_artist'];
 		}
 		else{
-			$ajax['error'] = 'No artist album';
+			$ajax['error'] = 'No id_artist';
+		}
+	}
+	// Create Album
+	elseif($action == 'create_album'){
+		if(isset($_POST['name']) && $_POST['name'] != '' && isset($_POST['id_artist']) && $_POST['id_artist'] != ''){
+			$ajax['response'] = 'ok';
+			$ajax['data'] = 'WESH '.$_POST['name'].' - '.$_POST['id_artist'];
+			$ajax['data'] = $milesLyrics->ajaxCreateAlbum($_POST['name'],$_POST['id_artist']);
+		}
+		else{
+			$ajax['error'] = 'No artist album or id_artist';
 		}
 	}
 	else{

@@ -1,8 +1,8 @@
 <?php
 
 require_once('config.inc.php');
-require_once('php/mileslyrics.class.php');
 require_once('php/lg/common.php');
+require_once('php/mileslyrics.class.php');
 
 $database = array(_DB_HOST, _DB_USER, _DB_PASS, _DB_DATABASE);
 $milesLyrics = new MilesLyrics($database);
@@ -22,9 +22,8 @@ $content .= '<h3>'._WELCOME.'</h3>';
 </head>
 <body>
 	<pre><?php echo $content; ?></pre>
-	
-	
-	<div id="admin" style="display:none;">
+
+	<div id="admin" style="display:block;">
 		<input type="button" id="close_admin" value="X" />
 		<div id="createArtist">
 			<?php echo $milesLyrics->templateCreateArtist(); ?>
@@ -34,6 +33,8 @@ $content .= '<h3>'._WELCOME.'</h3>';
 			<?php echo $milesLyrics->templateCreateAlbum(); ?>
 		</div>
 	</div>
-	
+	<script type="text/javascript">
+		var global_lang = "<?php echo $lg; ?>";
+	</script>
 </body>
 </html>
