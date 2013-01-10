@@ -29,17 +29,18 @@ if(isset($_POST['action']) && $_POST['action'] != ''){
 			$ajax['error'] = 'No artist name';
 		}
 	}
+	
 	// Create Album Select Artist
 	elseif($action == 'create_album_select_artist'){
 		if(isset($_POST['id_artist']) && $_POST['id_artist'] != ''){
 			$ajax['response'] = 'ok';
 			$ajax['data'] = $milesLyrics->ajaxCreateAlbumSelectArtist($_POST['id_artist']);
-			//~ $ajax['data'] = 'WESH '.$_POST['id_artist'];
 		}
 		else{
 			$ajax['error'] = 'No id_artist';
 		}
 	}
+	
 	// Create Album
 	elseif($action == 'create_album'){
 		if(isset($_POST['name']) && $_POST['name'] != '' && isset($_POST['id_artist']) && $_POST['id_artist'] != ''){
@@ -51,6 +52,40 @@ if(isset($_POST['action']) && $_POST['action'] != ''){
 			$ajax['error'] = 'No artist album or id_artist';
 		}
 	}
+	
+	// Create Tracks Select Artist
+	elseif($action == 'create_tracks_select_artist'){
+		if(isset($_POST['id_artist']) && $_POST['id_artist'] != ''){
+			$ajax['response'] = 'ok';
+			$ajax['data'] = $milesLyrics->ajaxCreateTracksSelectArtist($_POST['id_artist']);
+		}
+		else{
+			$ajax['error'] = 'No id_artist';
+		}
+	}
+
+	// Create Tracks Select Album
+	elseif($action == 'create_tracks_select_album'){
+		if(isset($_POST['id_album']) && $_POST['id_album'] != ''){
+			$ajax['response'] = 'ok';
+			$ajax['data'] = $milesLyrics->ajaxCreateTracksSelectAlbum($_POST['id_album']);
+		}
+		else{
+			$ajax['error'] = 'No id_artist';
+		}
+	}
+	
+	// Create Tracks
+	elseif($action == 'create_tracks'){
+		if(isset($_POST['pos']) && isset($_POST['name'])){
+			$ajax['response'] = 'ok';
+			$ajax['data'] = '<pre>'.print_r($_POST['pos'],true).' - '.print_r($_POST['name'],true).'</pre>';
+		}
+		else{
+			$ajax['error'] = 'No tracks';
+		}
+	}
+	
 	else{
 		$ajax['error'] = 'No action ['.$action.']';
 	}

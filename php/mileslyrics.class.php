@@ -5,11 +5,32 @@ class MilesLyrics{
 	private $db_data;
 	private $db;
 	
+	public $lg;
+	
 	public function __construct($database){
 		$this->db_data = $database;
 		$connect = $this->connect();
 		if($connect !== true){
 			echo $connect;
+		}
+		if(isset($_REQUEST['lg']) && $_REQUEST['lg'] != ''){
+			$this->lg = $_REQUEST['lg'];
+			switch($_REQUEST['lg']){
+				case 'eng':
+					include('lg/eng.php');
+				break;
+				case 'fr':
+					include('lg/fr.php');
+				break;
+				default:
+					include('lg/'._CONFIG_LANG.'.php');
+					$this->lg = _CONFIG_LANG;
+				break;
+			}	
+		}
+		else{
+			$this->lg = _CONFIG_LANG;
+			include('lg/'._CONFIG_LANG.'.php');
 		}
 	}
 	
@@ -43,16 +64,33 @@ class MilesLyrics{
 		return $data;
 	}
 	
-	private function getListArtist(){
-		$data = $this->mysql_request("SELECT","SELECT * FROM mileslyrics_artist");
+	private function getListArtist($album=false){
+		$rq = "SELECT * FROM mileslyrics_artist";
+		if($album){
+			$rq = "SELECT m_ar.id_artist,m_ar.name 
+			FROM mileslyrics_artist_album m_ar_al
+			LEFT JOIN mileslyrics_artist m_ar ON m_ar.id_artist=m_ar_al.id_artist
+			LEFT JOIN mileslyrics_album m_al ON m_al.id_album=m_ar_al.id_album
+			GROUP BY m_ar.id_artist;";
+		}
+		$data = $this->mysql_request("SELECT",$rq);
 		return $data;
 	}
 	
 	private function getListAlbumByArtist($id_artist){
-		$data = $this->mysql_request("SELECT","SELECT m_al.name FROM mileslyrics_artist_album m_ar_al 
+		$data = $this->mysql_request("SELECT","SELECT m_al.id_album, m_al.name FROM mileslyrics_artist_album m_ar_al 
 		LEFT JOIN mileslyrics_album m_al ON m_ar_al.id_album=m_al.id_album 
 		LEFT JOIN mileslyrics_artist m_ar ON m_ar_al.id_artist=m_ar.id_artist
 		WHERE m_ar.id_artist=".$id_artist."
+		");
+		return $data;
+	}
+	
+	private function getListTracksByAlbum($id_album){
+		$data = $this->mysql_request("SELECT","SELECT mt.* FROM mileslyrics_track_album mta
+		LEFT JOIN mileslyrics_track mt ON mt.id_track=mta.id_track
+		LEFT JOIN mileslyrics_album ma ON ma.id_album=mta.id_album
+		WHERE mta.id_album=".$id_album."
 		");
 		return $data;
 	}
@@ -135,7 +173,6 @@ class MilesLyrics{
 		$html .= '<h2>'._ADMIN_CREATE_ALBUM.'</h2>';
 		$listArtist = $this->getListArtist();
 		if($listArtist['response'] == 'ok'){
-			//~ $html .= '<pre>'.print_r($listArtist['data'],true).'</pre>';
 			$html .= '<select id="create_album_select_artist">';
 			$html .= '<option value=""> -- '._ARTIST.' -- </option>';				
 			foreach($listArtist['data'] as $artist){
@@ -145,6 +182,56 @@ class MilesLyrics{
 		}
 		$html .= '<div id="create_album_div" style="display:none;"><input type="text" id="create_album_name" /><input type="button" id="create_album_button" value="ok" /></div>';
 		$html .= '<div id="create_album_return"></div>';
+		return $html;
+	}
+	
+	public function ajaxCreateTracksSelectArtist($id_artist){
+		$return = _NO_ALBUM;
+		$data = $this->getListAlbumByArtist($id_artist);
+		if(count($data['data'])){
+			$return = '';
+			$return .= '<option value=""> -- '._ALBUM.' --</option>';
+			foreach($data['data'] as $album){
+				$return .= '<option value="'.$album['id_album'].'">'.$album['name'].'</option>';
+			}
+		}
+		return $return;
+	}
+	
+	public function ajaxCreateTracksSelectAlbum($id_album){
+		$return = '';
+		$data = $this->getListTracksByAlbum($id_album);
+		if(count($data['data'])){
+			foreach($data['data'] as $track){
+				$return .= '<p>'.$track['id_track'].' - '.$track['name'].' - '.$track['posame'].'</p>';
+			}
+		}
+		else{
+			$option = '<option value="">-pos-</option>';
+			for($i=1;$i<100;$i++){$option .= '<option value="'.$i.'">'; if($i<10){$option .= '0';} $option .= $i.'</option>';}
+			$return .= '<div id="create_track_tracklist"><p><select class="create_track_select">'.$option.'</select><input type="text" value="" class="create_track_name" /> <input type="button" value="X" class="create_track_remove" /></p></div>';
+			$return .= '<p><input type="button" value="Ajouter une chanson" id="create_track_add" /><input type="button" value="Créer" id="create_track_button" /></p>';
+		}
+		return $return;
+	}
+	
+	
+	public function templateCreateTracks(){
+		$html = '';
+		$html .= '<h2>'._ADMIN_CREATE_TRACKS.'</h2>';
+		$listArtist = $this->getListArtist(true);
+		if($listArtist['response'] == 'ok'){
+			$html .= '<select id="create_tracks_select_artist">';
+			$html .= '<option value=""> -- '._ARTIST.' -- </option>';				
+			foreach($listArtist['data'] as $artist){
+				$html .= '<option value="'.$artist['id_artist'].'">'.$artist['name'].'</option>';				
+			}
+			$html .= '</select>';
+		}
+		$html .= '<select id="create_tracks_select_album" style="display:none;">';
+		$html .= '</select>';
+		$html .= '<div id="create_tracks_div" style="display:none;"></div>';
+		$html .= '<div id="create_tracks_return"></div>';
 		return $html;
 	}
 }
