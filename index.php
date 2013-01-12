@@ -19,12 +19,15 @@ $content .= '<h3>'._WELCOME.'</h3>';
 	<script type="text/javascript" src="js/jquery.1.7.min.js"></script>
 	<script type="text/javascript" src="js/jwerty.js"></script>
 	<script type="text/javascript" src="js/mileslyrics.js"></script>
+	<script type="text/javascript" src="js/ready.js"></script>
+	<script type="text/javascript"><?php echo $milesLyrics->javascript; ?></script>
 </head>
 <body>
 	<pre><?php echo $content; ?></pre>
 
 	<div id="admin" style="display:block;">
 		<input type="button" id="close_admin" value="X" />
+		<!--
 		<div id="createArtist">
 			<?php echo $milesLyrics->templateCreateArtist(); ?>
 		</div>
@@ -32,13 +35,12 @@ $content .= '<h3>'._WELCOME.'</h3>';
 		<div id="createAlbum">
 			<?php echo $milesLyrics->templateCreateAlbum(); ?>
 		</div>
+		-->
 		
 		<div id="createTracks">
 			<?php echo $milesLyrics->templateCreateTracks(); ?>
 		</div>
 	</div>
-	<script type="text/javascript">
-		var global_lang = "<?php echo $milesLyrics->lg; ?>";
-	</script>
+	
 </body>
 </html>

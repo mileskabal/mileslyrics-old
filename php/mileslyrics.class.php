@@ -5,7 +5,7 @@ class MilesLyrics{
 	private $db_data;
 	private $db;
 	
-	public $lg;
+	public $javascript;
 	
 	public function __construct($database){
 		$this->db_data = $database;
@@ -13,8 +13,9 @@ class MilesLyrics{
 		if($connect !== true){
 			echo $connect;
 		}
+		$lg = 'eng';
 		if(isset($_REQUEST['lg']) && $_REQUEST['lg'] != ''){
-			$this->lg = $_REQUEST['lg'];
+			$lg = $_REQUEST['lg'];
 			switch($_REQUEST['lg']){
 				case 'eng':
 					include('lg/eng.php');
@@ -24,14 +25,24 @@ class MilesLyrics{
 				break;
 				default:
 					include('lg/'._CONFIG_LANG.'.php');
-					$this->lg = _CONFIG_LANG;
+					$lg = _CONFIG_LANG;
 				break;
 			}	
 		}
 		else{
-			$this->lg = _CONFIG_LANG;
+			$lg = _CONFIG_LANG;
 			include('lg/'._CONFIG_LANG.'.php');
 		}
+		
+		$this->javascript = '';
+		$this->javascript .= 'var global_lang = "'.$lg.'";';
+		$arr = get_defined_constants(true); 
+		foreach($arr['user'] as $key => $value){
+			if(substr($key,0,3) != '_DB'){
+				$this->javascript .= 'var GLOBAL'.$key.'= "'.$value.'";';
+			}
+		}
+		
 	}
 	
 	private function connect(){
@@ -91,6 +102,7 @@ class MilesLyrics{
 		LEFT JOIN mileslyrics_track mt ON mt.id_track=mta.id_track
 		LEFT JOIN mileslyrics_album ma ON ma.id_album=mta.id_album
 		WHERE mta.id_album=".$id_album."
+		ORDER BY mt.pos
 		");
 		return $data;
 	}
@@ -111,6 +123,21 @@ class MilesLyrics{
 		if($id_artist && $id_album){
 			$data2 = $this->mysql_request("INSERT","INSERT INTO mileslyrics_artist_album (id_artist,id_album) VALUES (".$id_artist.",".$id_album.");");
 		}
+		return $data;
+	}
+	
+	private function createTrack($id_album,$pos,$name){
+		$data = $this->mysql_request("INSERT","INSERT INTO mileslyrics_track (id_track,name,pos) VALUES (NULL,'".mysql_real_escape_string($name)."',".$pos.");");
+		$id_track = $data['insert_id'];
+		if($id_track){
+			$data2 = $this->mysql_request("INSERT","INSERT INTO mileslyrics_track_album (id_track,id_album) VALUES (".$id_track.",".$id_album.");");
+		}
+		return $data;
+	}
+
+	private function editTrack($id_track,$pos,$name){
+		$data = $this->mysql_request("UPDATE","UPDATE mileslyrics_track SET name='".mysql_real_escape_string($name)."', pos=".$pos." WHERE id_track=".$id_track.";");
+		//~ return "UPDATE mileslyrics_track SET name='".mysql_real_escape_string($name)."', pos=".$pos." WHERE id_track=".$id_track.";";
 		return $data;
 	}
 	
@@ -201,20 +228,40 @@ class MilesLyrics{
 	public function ajaxCreateTracksSelectAlbum($id_album){
 		$return = '';
 		$data = $this->getListTracksByAlbum($id_album);
+		$return .= '<div id="create_track_tracklist">';
 		if(count($data['data'])){
 			foreach($data['data'] as $track){
-				$return .= '<p>'.$track['id_track'].' - '.$track['name'].' - '.$track['posame'].'</p>';
+				$option = '<option value="">-pos-</option>';
+				for($i=1;$i<100;$i++){$optionSelected = ''; if($i == $track['pos']){$optionSelected = ' selected="selected"';}$option .= '<option value="'.$i.'"'.$optionSelected.'>'; if($i<10){$option .= '0';} $option .= $i.'</option>';}
+				$return .= '<p><select class="create_track_select" disabled>'.$option.'</select><input type="text"  class="create_track_name" value="'.$track['name'].'" disabled /> <input type="button" value="'._ADMIN_EDIT.'" class="create_track_edit" /><input type="button" value="'._ADMIN_LYRICS.'" class="create_track_lyrics" /><input style="display:none;" type="button" value="'._ADMIN_OK.'" class="create_track_edit_action" data-id_track="'.$track['id_track'].'" /><input style="display:none;" type="button" value="'._ADMIN_CANCEL.'" class="create_track_edit_action_cancel" /></p>';
 			}
 		}
 		else{
 			$option = '<option value="">-pos-</option>';
 			for($i=1;$i<100;$i++){$option .= '<option value="'.$i.'">'; if($i<10){$option .= '0';} $option .= $i.'</option>';}
-			$return .= '<div id="create_track_tracklist"><p><select class="create_track_select">'.$option.'</select><input type="text" value="" class="create_track_name" /> <input type="button" value="X" class="create_track_remove" /></p></div>';
-			$return .= '<p><input type="button" value="Ajouter une chanson" id="create_track_add" /><input type="button" value="Créer" id="create_track_button" /></p>';
+			$return .= '<p class="create"><select class="create_track_select">'.$option.'</select><input type="text" value="" class="create_track_name" /> <input type="button" value="X" class="create_track_remove" /></p>';
 		}
+		$return .= '</div>';
+		$return .= '<p><input type="button" value="'._ADMIN_ADD_TRACK.'" id="create_track_add" /><input type="button" value="'._ADMIN_SAVE.'" id="create_track_button" /></p>';
+		
 		return $return;
 	}
 	
+	public function ajaxCreateTracksEdit($id_track,$track_pos,$track_name){
+		$data = $this->editTrack($id_track,$track_pos,$track_name);
+		return $data;
+	}
+
+	public function ajaxCreateTracks($id_album,$track_pos,$track_name){
+		$return = '';
+		$insert_id = array();
+		for($i=0;$i<count($track_pos);$i++){			
+			$data = $this->createTrack($id_album,$track_pos[$i],$track_name[$i]);
+			array_push($insert_id,$data['insert_id']);
+		}
+		$return = json_encode($insert_id);
+		return $return;
+	}
 	
 	public function templateCreateTracks(){
 		$html = '';
