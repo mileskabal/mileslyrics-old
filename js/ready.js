@@ -87,4 +87,3 @@ $(document).ready(function(){
 });
 
 jwerty.key('a,d,m,i,n', function () { $("#admin").show(); });
-
