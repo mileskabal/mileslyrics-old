@@ -44,3 +44,4 @@ $content .= '<h3>'._WELCOME.'</h3>';
 	
 </body>
 </html>
+

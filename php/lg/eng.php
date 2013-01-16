@@ -16,3 +16,4 @@ define("_ADMIN_OK","Ok");
 define("_ADMIN_CANCEL","Cancel");
 
 ?>
+
