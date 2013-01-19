@@ -78,6 +78,24 @@ $(document).ready(function(){
 		return false;
 	});
 	
+	// Create Lyrics Button
+	$(".create_track_lyrics").live("click", function(){
+		createLyrics(this);
+		return false;
+	});
+	
+	// Create Lyrics Cancel Button
+	$('#create_lyrics_button_cancel').live("click", function(){
+		createLyricsCancel(this);
+		return false;
+	});
+
+	// Create Lyrics Action Button
+	$('#create_lyrics_button').live("click", function(){
+		createLyricsAction(this);
+		return false;
+	});
+	
 	// Close Admin Button
 	$("#close_admin").live("click", function(){
 		$("#admin").hide();

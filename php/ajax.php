@@ -95,6 +95,28 @@ if(isset($_POST['action']) && $_POST['action'] != ''){
 			$ajax['error'] = 'No tracks';
 		}
 	}
+
+	// Create Lyrics
+	elseif($action == 'get_lyrics'){
+		if(isset($_POST['id_track'])){
+			$ajax['data'] = $milesLyrics->ajaxGetLyrics($_POST['id_track']);
+			$ajax['response'] = 'ok';
+		}
+		else{
+			$ajax['error'] = 'No id_track';
+		}
+	}
+
+	// Create Lyrics Action
+	elseif($action == 'set_lyrics'){
+		if(isset($_POST['id_track']) && isset($_POST['id_lyrics']) && isset($_POST['text'])){
+			$ajax['data'] = $milesLyrics->ajaxSetLyrics($_POST['id_track'],$_POST['text'],$_POST['id_lyrics']);
+			$ajax['response'] = 'ok';
+		}
+		else{
+			$ajax['error'] = 'No id_track or text';
+		}
+	}
 	
 	else{
 		$ajax['error'] = 'No action ['.$action.']';

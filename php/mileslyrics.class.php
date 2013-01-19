@@ -107,6 +107,28 @@ class MilesLyrics{
 		return $data;
 	}
 	
+	private function getLyricsForTrack($id_track){
+		$data = $this->mysql_request("SELECT","SELECT ml.* FROM mileslyrics_lyrics ml
+		LEFT JOIN mileslyrics_lyrics_track mlt ON ml.id_lyrics=mlt.id_lyrics
+		WHERE mlt.id_track=".$id_track);
+		//~ $data['nbr'] = 1;
+		return $data;
+	}
+	
+	private function setLyricsForTrack($id_track,$text,$id_lyrics=0){
+		if($id_lyrics){
+			$data = $this->mysql_request("UPDATE","UPDATE mileslyrics_lyrics SET text='".mysql_real_escape_string($text)."' WHERE id_lyrics=".$id_lyrics.";");
+		}
+		else{		
+			$data = $this->mysql_request("INSERT","INSERT INTO mileslyrics_lyrics (id_lyrics,text) VALUES (NULL,'".mysql_real_escape_string($text)."');");
+			$id_lyrics_id = $data['insert_id'];
+			if($id_track && $id_lyrics_id){
+				$data2 = $this->mysql_request("INSERT","INSERT INTO mileslyrics_lyrics_track (id_lyrics,id_track) VALUES (".$id_lyrics_id.",".$id_track.");");
+			}
+		}
+		return $data;
+	}
+	
 	private function createArtistCheck($name){
 		$data = $this->mysql_request("SELECT","SELECT * FROM mileslyrics_artist WHERE name LIKE '%".mysql_real_escape_string($name)."%';");
 		return $data;
@@ -231,9 +253,16 @@ class MilesLyrics{
 		$return .= '<div id="create_track_tracklist">';
 		if(count($data['data'])){
 			foreach($data['data'] as $track){
+				$lt = $this->getLyricsForTrack($track['id_track']);
+				$id_lyrics = 0;
+				$class_add = '';
+				if($lt['nbr']){
+					$id_lyrics = $lt['data'][0]['id_lyrics'];
+					$class_add = ' lyrics_set';
+				}
 				$option = '<option value="">-pos-</option>';
 				for($i=1;$i<100;$i++){$optionSelected = ''; if($i == $track['pos']){$optionSelected = ' selected="selected"';}$option .= '<option value="'.$i.'"'.$optionSelected.'>'; if($i<10){$option .= '0';} $option .= $i.'</option>';}
-				$return .= '<p><select class="create_track_select" disabled>'.$option.'</select><input type="text"  class="create_track_name" value="'.$track['name'].'" disabled /> <input type="button" value="'._ADMIN_EDIT.'" class="create_track_edit" /><input type="button" value="'._ADMIN_LYRICS.'" class="create_track_lyrics" /><input style="display:none;" type="button" value="'._ADMIN_OK.'" class="create_track_edit_action" data-id_track="'.$track['id_track'].'" /><input style="display:none;" type="button" value="'._ADMIN_CANCEL.'" class="create_track_edit_action_cancel" /></p>';
+				$return .= '<p><select class="create_track_select" disabled>'.$option.'</select><input type="text"  class="create_track_name" value="'.$track['name'].'" disabled /> <input type="button" value="'._ADMIN_EDIT.'" class="create_track_edit" /><input type="button" value="'._ADMIN_LYRICS.'" class="create_track_lyrics'.$class_add.'" data-id_track="'.$track['id_track'].'" data-id_lyrics="'.$id_lyrics.'" /><input style="display:none;" type="button" value="'._ADMIN_OK.'" class="create_track_edit_action" data-id_track="'.$track['id_track'].'" /><input style="display:none;" type="button" value="'._ADMIN_CANCEL.'" class="create_track_edit_action_cancel" /></p>';
 			}
 		}
 		else{
@@ -263,15 +292,25 @@ class MilesLyrics{
 		return $return;
 	}
 	
+	public function ajaxGetLyrics($id_track){
+		$return = $this->getLyricsForTrack($id_track);
+		return $return;
+	}
+	
+	public function ajaxSetLyrics($id_track,$text,$id_lyrics=0){		
+		$return = $this->setLyricsForTrack($id_track,$text,$id_lyrics);
+		return $return;
+	}
+	
 	public function templateCreateTracks(){
 		$html = '';
 		$html .= '<h2>'._ADMIN_CREATE_TRACKS.'</h2>';
 		$listArtist = $this->getListArtist(true);
 		if($listArtist['response'] == 'ok'){
 			$html .= '<select id="create_tracks_select_artist">';
-			$html .= '<option value=""> -- '._ARTIST.' -- </option>';				
+			$html .= '<option value=""> -- '._ARTIST.' -- </option>';
 			foreach($listArtist['data'] as $artist){
-				$html .= '<option value="'.$artist['id_artist'].'">'.$artist['name'].'</option>';				
+				$html .= '<option value="'.$artist['id_artist'].'">'.$artist['name'].'</option>';
 			}
 			$html .= '</select>';
 		}
@@ -279,6 +318,7 @@ class MilesLyrics{
 		$html .= '</select>';
 		$html .= '<div id="create_tracks_div" style="display:none;"></div>';
 		$html .= '<div id="create_tracks_return"></div>';
+		$html .= '<div id="create_lyrics" style="display:none;"><textarea id="lyrics_text" style="width:570px;height:340px;"></textarea><br /><input type="button" id="create_lyrics_button" value="'._ADMIN_OK.'" data-id_track="0" data-id_lyrics="0" /><input type="button" id="create_lyrics_button_cancel" value="'._ADMIN_CANCEL.'" /></div>';
 		return $html;
 	}
 }

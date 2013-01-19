@@ -85,6 +85,7 @@ function createAlbumSelectArtist(){
 
 // Create Tracks Select Artist ACTION AJAX
 function createTracksSelectArtist(){
+	$('#create_lyrics').hide();
 	$('#create_tracks_div').empty().hide();
 	var id_artist = $('#create_tracks_select_artist').val();
 	if(id_artist != ''){
@@ -107,7 +108,8 @@ function createTracksSelectArtist(){
 
 // Create Tracks Select Album ACTION AJAX
 function createTracksSelectAlbum(){
-	$('#create_tracks_div').empty().hide();
+	$('#create_lyrics').hide();
+	$('#create_tracks_div,').empty().hide();
 	var id_album = $('#create_tracks_select_album').val();
 	if(id_album != ''){
 		console.log(id_album);
@@ -230,4 +232,71 @@ function createTracks(){
 	else{
 		alert('same pos');
 	}
+}
+
+// Create Lyrics Button
+function createLyrics(button){
+	var id_track = $(button).data('id_track');
+	var id_lyrics = $(button).data('id_lyrics');
+	$.ajax({
+		type: "POST",
+		url: "php/ajax.php",
+		data: "lg="+global_lang+"&action=get_lyrics&id_track="+id_track,
+		success: function(msg){
+			var json = jQuery.parseJSON(msg);
+			console.log(json);
+			if(json.response == 'ok'){
+				$('#lyrics_text').val('');
+				if(json.data.nbr){
+					$('#lyrics_text').val(json.data.data[0].text);
+				}
+				$('#create_lyrics_button').data('id_track',id_track);
+				$('#create_lyrics_button').data('id_lyrics',id_lyrics);
+				$('#create_lyrics').slideDown();
+				$('#create_tracks_div p').not($(button).parent()).slideUp();
+			}
+		}
+	});
+}
+
+// Create Lyrics Action Button
+function createLyricsAction(button){
+	var id_track = $(button).data('id_track');
+	var id_lyrics = $(button).data('id_lyrics');
+	var text = $('#lyrics_text').val();
+	if(text != ''){
+		$.ajax({
+			type: "POST",
+			url: "php/ajax.php",
+			data: "lg="+global_lang+"&action=set_lyrics&id_track="+id_track+"&id_lyrics="+id_lyrics+"&text="+encodeURIComponent(text),
+			success: function(msg){
+				var json = jQuery.parseJSON(msg);
+				console.log(json);
+				if(json.response == 'ok'){
+					$('#create_track_tracklist p .create_track_lyrics').each(function(){
+						var p_id_track = $(this).data('id_track');
+						if(id_track == p_id_track){
+							if(json.data.insert_id){
+								$(this).data('id_lyrics',json.data.insert_id);
+								$(this).addClass('lyrics_set');
+							}
+						}
+					});
+					$('#lyrics_text').val('');
+					$('#create_lyrics').hide();
+					$('#create_tracks_div p').slideDown();
+				}
+			}
+		});
+	}
+	else{
+		alert('Lyrics empty');
+	}
+}
+
+// Create Lyrics Cancel Button
+function createLyricsCancel(button){
+	$('#lyrics_text').val('');
+	$('#create_lyrics').hide();
+	$('#create_tracks_div p').slideDown();
 }

@@ -21,11 +21,12 @@ $content .= '<h3>'._WELCOME.'</h3>';
 	<script type="text/javascript" src="js/mileslyrics.js"></script>
 	<script type="text/javascript" src="js/ready.js"></script>
 	<script type="text/javascript"><?php echo $milesLyrics->javascript; ?></script>
+	<style type="text/css">.lyrics_set{background-color:red;}</style>
 </head>
 <body>
 	<pre><?php echo $content; ?></pre>
 
-	<div id="admin" style="display:block;">
+	<div id="admin" style="display:none;">
 		<input type="button" id="close_admin" value="X" />
 		<!--
 		<div id="createArtist">
