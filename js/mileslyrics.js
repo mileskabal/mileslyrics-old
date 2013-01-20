@@ -1,3 +1,25 @@
+// Create Lyrics Button
+function getLyrics(id_track){
+	$.ajax({
+		type: "POST",
+		url: "php/ajax.php",
+		data: "lg="+global_lang+"&action=get_lyrics&id_track="+id_track,
+		success: function(msg){
+			var json = jQuery.parseJSON(msg);
+			console.log(json);
+			if(json.response == 'ok'){				
+				$('#lyrics').html(json.data);
+			}
+		}
+	});
+}
+
+
+////////////////////////////////
+// ADMIN FUNCTION
+////////////////////////////////
+
+
 // Create Artist ACTION AJAX
 function createArtist(confirm){
 	var addconfirm = '';
@@ -241,7 +263,7 @@ function createLyrics(button){
 	$.ajax({
 		type: "POST",
 		url: "php/ajax.php",
-		data: "lg="+global_lang+"&action=get_lyrics&id_track="+id_track,
+		data: "lg="+global_lang+"&action=get_lyrics_create&id_track="+id_track,
 		success: function(msg){
 			var json = jQuery.parseJSON(msg);
 			console.log(json);
@@ -268,7 +290,7 @@ function createLyricsAction(button){
 		$.ajax({
 			type: "POST",
 			url: "php/ajax.php",
-			data: "lg="+global_lang+"&action=set_lyrics&id_track="+id_track+"&id_lyrics="+id_lyrics+"&text="+encodeURIComponent(text),
+			data: "lg="+global_lang+"&action=set_lyrics_create&id_track="+id_track+"&id_lyrics="+id_lyrics+"&text="+encodeURIComponent(text),
 			success: function(msg){
 				var json = jQuery.parseJSON(msg);
 				console.log(json);

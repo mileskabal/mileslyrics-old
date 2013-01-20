@@ -14,8 +14,19 @@ if(isset($_POST['action']) && $_POST['action'] != ''){
 	$action = $_POST['action'];
 	$ajax['action'] = $action;
 	
+	
+	// Lyrics GET
+	if($action == 'get_lyrics'){
+		if(isset($_POST['id_track'])){
+			$ajax['data'] = $milesLyrics->ajaxGetLyrics($_POST['id_track']);
+			$ajax['response'] = 'ok';
+		}
+		else{
+			$ajax['error'] = 'No id_track';
+		}
+	}
 	// Create Artist
-	if($action == 'create_artist'){
+	else if($action == 'create_artist'){
 		if(isset($_POST['name']) && $_POST['name'] != ''){
 			$ajax['response'] = 'ok';
 			if(isset($_POST['confirm']) && $_POST['confirm'] == '1'){
@@ -96,10 +107,10 @@ if(isset($_POST['action']) && $_POST['action'] != ''){
 		}
 	}
 
-	// Create Lyrics
-	elseif($action == 'get_lyrics'){
+	// Create Lyrics GET
+	elseif($action == 'get_lyrics_create'){
 		if(isset($_POST['id_track'])){
-			$ajax['data'] = $milesLyrics->ajaxGetLyrics($_POST['id_track']);
+			$ajax['data'] = $milesLyrics->ajaxGetLyricsCreate($_POST['id_track']);
 			$ajax['response'] = 'ok';
 		}
 		else{
@@ -107,10 +118,10 @@ if(isset($_POST['action']) && $_POST['action'] != ''){
 		}
 	}
 
-	// Create Lyrics Action
-	elseif($action == 'set_lyrics'){
+	// Create Lyrics SET
+	elseif($action == 'set_lyrics_create'){
 		if(isset($_POST['id_track']) && isset($_POST['id_lyrics']) && isset($_POST['text'])){
-			$ajax['data'] = $milesLyrics->ajaxSetLyrics($_POST['id_track'],$_POST['text'],$_POST['id_lyrics']);
+			$ajax['data'] = $milesLyrics->ajaxSetLyricsCreate($_POST['id_track'],$_POST['text'],$_POST['id_lyrics']);
 			$ajax['response'] = 'ok';
 		}
 		else{

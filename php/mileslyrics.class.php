@@ -107,11 +107,21 @@ class MilesLyrics{
 		return $data;
 	}
 	
+	private function getInfosForTrack($id_track){
+		$data = $this->mysql_request("SELECT","SELECT m_t.pos AS pos, m_t.name AS track, m_al.name AS album, m_ar.name AS artist 
+		FROM mileslyrics_track m_t
+		LEFT JOIN mileslyrics_track_album m_t_a ON m_t_a.id_track=m_t.id_track
+		LEFT JOIN mileslyrics_album m_al ON m_al.id_album=m_t_a.id_album
+		LEFT JOIN mileslyrics_artist_album m_ar_al ON m_ar_al.id_album=m_al.id_album
+		LEFT JOIN mileslyrics_artist m_ar ON m_ar.id_artist=m_ar_al.id_artist
+		WHERE m_t.id_track=".$id_track);
+		return $data;
+	}
+	
 	private function getLyricsForTrack($id_track){
 		$data = $this->mysql_request("SELECT","SELECT ml.* FROM mileslyrics_lyrics ml
 		LEFT JOIN mileslyrics_lyrics_track mlt ON ml.id_lyrics=mlt.id_lyrics
 		WHERE mlt.id_track=".$id_track);
-		//~ $data['nbr'] = 1;
 		return $data;
 	}
 	
@@ -292,12 +302,12 @@ class MilesLyrics{
 		return $return;
 	}
 	
-	public function ajaxGetLyrics($id_track){
+	public function ajaxGetLyricsCreate($id_track){
 		$return = $this->getLyricsForTrack($id_track);
 		return $return;
 	}
 	
-	public function ajaxSetLyrics($id_track,$text,$id_lyrics=0){		
+	public function ajaxSetLyricsCreate($id_track,$text,$id_lyrics=0){		
 		$return = $this->setLyricsForTrack($id_track,$text,$id_lyrics);
 		return $return;
 	}
@@ -320,6 +330,66 @@ class MilesLyrics{
 		$html .= '<div id="create_tracks_return"></div>';
 		$html .= '<div id="create_lyrics" style="display:none;"><textarea id="lyrics_text" style="width:570px;height:340px;"></textarea><br /><input type="button" id="create_lyrics_button" value="'._ADMIN_OK.'" data-id_track="0" data-id_lyrics="0" /><input type="button" id="create_lyrics_button_cancel" value="'._ADMIN_CANCEL.'" /></div>';
 		return $html;
+	}
+	
+	public function templateMainMenu(){
+		$html = '';
+		$listArtist = $this->getListArtist();
+		$html .= '<ul class="artist">';
+		foreach($listArtist['data'] as $artist){
+			$html .= '<li class="artist">';
+			$html .= '<span>'.$artist['name'].'</span>';
+			$listAlbum = $this->getListAlbumByArtist($artist['id_artist']);
+			if($listAlbum['nbr']){
+				$html .= '<ul class="album" style="display:none;">';				
+				foreach($listAlbum['data'] as $album){
+					$html .= '<li class="album">';
+					$html .= '<span>'.$album['name'].'</span>';
+					$listTrack = $this->getListTracksByAlbum($album['id_album']);
+					if($listTrack['nbr']){
+						$html .= '<ul class="track" style="display:none;">';				
+						foreach($listTrack['data'] as $track){
+							$lt = $this->getLyricsForTrack($track['id_track']);
+							$lyrics_set = 0;
+							if($lt['nbr']){$lyrics_set = 1;}
+							$pos = $track['pos'];
+							if($pos < 10){$pos = '0'.$pos;}
+							$html .= '<li class="track">';
+							if($lyrics_set){
+								$html .= '<a href="#" data-id_track="'.$track['id_track'].'">';
+							}
+							$html .= $pos.' - '.$track['name'];
+							if($lyrics_set){
+								$html .= '</a>';
+							}
+							$html .= '</li>';
+						}
+						$html .= '</ul>';				
+					}
+					$html .= '</li>';
+				}
+				$html .= '</ul>';
+			}			
+			$html .= '</li>';
+		}
+		$html .= '</ul>';
+		return $html;
+	}
+	
+	public function ajaxGetLyrics($id_track){
+		$return = '';
+		$lyrics = $this->getLyricsForTrack($id_track);
+		$text = nl2br($lyrics['data'][0]['text']);
+		$infos = $this->getInfosForTrack($id_track);
+		$artist = $infos['data'][0]['artist'];
+		$album = $infos['data'][0]['album'];
+		$track = $infos['data'][0]['track'];
+		$pos = $infos['data'][0]['pos'];
+		if($pos < 10){$pos = '0'.$pos;}
+		$return .= '<h2><b>'.$artist.'</b> - <i>'.$album.'</i></h2>';
+		$return .= '<h3>'.$pos.' - '.$track.'</h3>';
+		$return .= '<p>'.$text.'</p>';
+		return $return;
 	}
 }
 

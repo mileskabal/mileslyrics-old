@@ -1,5 +1,42 @@
 $(document).ready(function(){
 	
+	
+	// MENU //
+	// ARTIST
+	$('#menu ul.artist li.artist > span').live("click", function(){
+		$(this).parent().children('ul.album').slideToggle();
+		return false;
+	});
+	$('#menu ul.artist li.artist > span').live("hover", function(){
+		$(this).css('cursor','pointer');
+	});
+	$('#menu ul.artist li.artist > span').live("out", function(){
+		$(this).css('cursor','main');
+	});	
+	// ALBUM
+	$('#menu ul.artist li ul.album li > span').live("click", function(){
+		$(this).parent().children('ul.track').slideToggle();
+		return false;
+	});
+	$('#menu ul.artist li ul.album li.album > span').live("hover", function(){
+		$(this).css('cursor','pointer');
+	});
+	$('#menu ul.artist li ul.album li.album > span').live("out", function(){
+		$(this).css('cursor','main');
+	});
+	// TRACK
+	$('#menu ul.artist li ul.album li.album ul.track li.track a').live("click", function(e){
+		getLyrics($(this).data('id_track'));
+		e.preventDefault();
+		return false;
+	});
+	
+	
+	
+	////////////////////////////////
+	// ADMIN BUTTON AND ACTION
+	////////////////////////////////
+		
 	// Create Artist Button
 	$("#create_artist_button").live("click", function(){
 		createArtist();
@@ -99,9 +136,10 @@ $(document).ready(function(){
 	// Close Admin Button
 	$("#close_admin").live("click", function(){
 		$("#admin").hide();
+		$("#wrapper").show();
 		return false;
 	});
 	
 });
 
-jwerty.key('a,d,m,i,n', function () { $("#admin").show(); });
+jwerty.key('a,d,m,i,n', function () { $("#admin").show(); $("#wrapper").hide(); });

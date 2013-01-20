@@ -1,0 +1,16 @@
+body{
+font-family:Verdana;
+font-size:12px;
+}
+
+#menu{
+float:left;
+}
+#lyrics{
+float:left;
+margin-left:20px;
+}
+
+.lyrics_set{
+background-color:red;
+}
